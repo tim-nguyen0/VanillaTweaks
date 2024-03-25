@@ -37,11 +37,8 @@ public class TweaksImpl {
     public static void swapSlot(Player player, ArmorStand armorStand, EquipmentSlot slot) {
         ItemStack playerItem = player.getItemBySlot(slot);
         ItemStack armorStandItem = armorStand.getItemBySlot(slot);
-
-        if (player.isCreative() || (!EnchantmentHelper.hasBindingCurse(playerItem) && !EnchantmentHelper.hasBindingCurse(armorStandItem))) {
-            player.setItemSlot(slot, armorStandItem);
-            armorStand.setItemSlot(slot, playerItem);
-        }
+        player.setItemSlot(slot, armorStandItem);
+        armorStand.setItemSlot(slot, playerItem);
     }
 
     /**
@@ -93,7 +90,7 @@ public class TweaksImpl {
      * Harvests large area of crops when different hoe types are used.
      */
     public static void triggerSickle(Player player, ItemStack stack, Level world, BlockPos blockPos, BlockState originalState, boolean config) {
-        if (!world.isClientSide() && !stack.isEmpty() && stack.getItem() instanceof HoeItem && TweaksImpl.canHarvest(originalState) &&
+        if (!stack.isEmpty() && stack.getItem() instanceof HoeItem && TweaksImpl.canHarvest(originalState) &&
                 config) {
             int range = TweaksImpl.getRange(stack.getItem());
             for (int i = -range; i < range + 1; i++) {

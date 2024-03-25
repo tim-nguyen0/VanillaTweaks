@@ -7,10 +7,10 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.loot.IGlobalLootModifier;
 import net.minecraftforge.event.TickEvent;
@@ -60,9 +60,9 @@ public class EnchantmentInit extends ForgeFeature {
      */
     @SubscribeEvent
     public void useItem(LivingEntityUseItemEvent event) {
-        if (!event.getEntity().getCommandSenderWorld().isClientSide() && enableHoming.get()) {
+        if (!event.getEntity().getCommandSenderWorld().isClientSide()) {
             LivingEntity player = event.getEntity();
-            int homingLvl = event.getItem().getEnchantmentLevel(EnchantmentInit.HOMING.get());
+            int homingLvl = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentInit.HOMING.get(), event.getItem());
             if (homingLvl > 0) {
                 LivingEntity target = EnchantmentImpl.getHomingTarget(event.getEntity().getCommandSenderWorld(), player, homingLvl);
                 if (target != null)
@@ -72,20 +72,15 @@ public class EnchantmentInit extends ForgeFeature {
     }
 
     /**
-     * Handles the logic of Nimble, Vigor & Hops enchantment
+     * Handles the logic of Nimble & Vigor enchantment
      */
     @SubscribeEvent
     public void onLivingEquipmentChange(LivingEquipmentChangeEvent event) {
-        if (!event.getEntity().level().isClientSide()) {
-            if (EnchantmentInit.enableNimble.get() && event.getSlot() == EquipmentSlot.FEET) {
-                EnchantmentImpl.triggerNimble(event.getEntity(), EnchantmentInit.NIMBLE.get());
-            }
-            if (EnchantmentInit.enableVigor.get() && event.getSlot() == EquipmentSlot.CHEST) {
-                EnchantmentImpl.triggerVigor(event.getEntity(), EnchantmentInit.VIGOR.get());
-            }
-            if (EnchantmentInit.enableHops.get() && event.getSlot() == EquipmentSlot.FEET) {
-                EnchantmentImpl.triggerHops(event.getEntity(), EnchantmentInit.HOPS.get());
-            }
+        if (EnchantmentInit.enableNimble.get()) {
+            EnchantmentImpl.triggerNimble(event.getEntity(), EnchantmentInit.NIMBLE.get());
+        }
+        if (EnchantmentInit.enableVigor.get()) {
+            EnchantmentImpl.triggerVigor(event.getEntity(), EnchantmentInit.VIGOR.get());
         }
     }
 
