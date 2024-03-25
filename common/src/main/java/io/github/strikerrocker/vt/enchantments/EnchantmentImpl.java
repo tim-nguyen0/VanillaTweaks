@@ -36,12 +36,17 @@ public class EnchantmentImpl {
         AttributeInstance vigorAttribute = livingEntity.getAttribute(Attributes.MAX_HEALTH);
         AttributeModifier vigorModifier = new AttributeModifier(vigorUUID, "vigor", (float) lvl / 10, AttributeModifier.Operation.MULTIPLY_BASE);
         if (vigorAttribute != null) {
-            vigorAttribute.removeModifier(vigorUUID);
             if (lvl > 0) {
-                vigorAttribute.addPermanentModifier(vigorModifier);
+                if (vigorAttribute.getModifier(vigorUUID) == null) {
+                    vigorAttribute.addPermanentModifier(vigorModifier);
+                }
+            } else {
+                if (vigorAttribute.getModifier(vigorUUID) != null) {
+                    vigorAttribute.removeModifier(vigorModifier);
+                    if (livingEntity.getHealth() > livingEntity.getMaxHealth())
+                        livingEntity.setHealth(livingEntity.getMaxHealth());
+                }
             }
-            if (livingEntity.getHealth() > livingEntity.getMaxHealth())
-                livingEntity.setHealth(livingEntity.getMaxHealth());
         }
     }
 
@@ -67,11 +72,14 @@ public class EnchantmentImpl {
     public static void triggerNimble(LivingEntity livingEntity, Enchantment enchantment) {
         int lvl = EnchantmentHelper.getItemEnchantmentLevel(enchantment, livingEntity.getItemBySlot(EquipmentSlot.FEET));
         AttributeInstance speedAttribute = livingEntity.getAttribute(Attributes.MOVEMENT_SPEED);
-        AttributeModifier speedModifier = new AttributeModifier(nimbleUUID, "Nimble", lvl * 0.20000000298023224, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        AttributeModifier speedModifier = new AttributeModifier(nimbleUUID, "Nimble", lvl * 0.05, AttributeModifier.Operation.MULTIPLY_TOTAL);
         if (speedAttribute != null) {
-            speedAttribute.removeModifier(nimbleUUID);
             if (lvl > 0) {
-                speedAttribute.addPermanentModifier(speedModifier);
+                if (speedAttribute.getModifier(nimbleUUID) == null) {
+                    speedAttribute.addPermanentModifier(speedModifier);
+                }
+            } else if (speedAttribute.getModifier(nimbleUUID) != null) {
+                speedAttribute.removeModifier(speedModifier);
             }
         }
     }
@@ -79,10 +87,8 @@ public class EnchantmentImpl {
     public static void triggerHops(LivingEntity livingEntity, Enchantment enchantment) {
         int lvl = EnchantmentHelper.getItemEnchantmentLevel(enchantment, livingEntity.getItemBySlot(EquipmentSlot.FEET));
         if (lvl > 0) {
-            if (livingEntity.hasEffect(MobEffects.JUMP) && livingEntity.getEffect(MobEffects.JUMP).isInfiniteDuration())
-                livingEntity.removeEffect(MobEffects.JUMP);
             if (!livingEntity.hasEffect(MobEffects.JUMP)) {
-                livingEntity.addEffect(new MobEffectInstance(MobEffects.JUMP, -1, lvl, true, false, false));
+                livingEntity.addEffect(new MobEffectInstance(MobEffects.JUMP, Integer.MAX_VALUE, lvl-1, true, false, false));
             }
         } else {
             if (livingEntity.hasEffect(MobEffects.JUMP)) {
@@ -136,7 +142,7 @@ public class EnchantmentImpl {
      */
     public static ItemStack smelt(ItemStack stack, ServerLevel level) {
         return level.getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SimpleContainer(stack), level)
-                .map(smeltingRecipe -> smeltingRecipe.value().getResultItem(level.registryAccess()))
+                .map(smeltingRecipe -> smeltingRecipe.getResultItem(level.registryAccess()))
                 .filter(itemStack -> !itemStack.isEmpty())
                 .map(itemStack -> {
                     ItemStack copy = itemStack.copy();

@@ -1,24 +1,22 @@
 package io.github.strikerrocker.vt.content.blocks;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonObject;
 import io.github.strikerrocker.vt.VanillaTweaks;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.crafting.conditions.ICondition;
+import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
 
 
 /**
  * Adds conditions for item blocks recipes
  */
-public final class BlockConditions implements ICondition {
-    public static final Codec<BlockConditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("object").forGetter(condition -> condition.object)
-    ).apply(instance, BlockConditions::new));
-    public static final ResourceLocation NAME = new ResourceLocation(VanillaTweaks.MOD_ID, "blocks");
-    private final String object;
+public record BlockConditions(String object) implements ICondition {
 
-    public BlockConditions(String object) {
-        this.object = object;
+    private static final ResourceLocation NAME = new ResourceLocation(VanillaTweaks.MOD_ID, "blocks");
+
+    @Override
+    public ResourceLocation getID() {
+        return NAME;
     }
 
     @Override
@@ -28,8 +26,21 @@ public final class BlockConditions implements ICondition {
         return false;
     }
 
-    @Override
-    public Codec<? extends ICondition> codec() {
-        return CODEC;
+    public static class Serializer implements IConditionSerializer<BlockConditions> {
+        public static final BlockConditions.Serializer INSTANCE = new BlockConditions.Serializer();
+
+        @Override
+        public void write(JsonObject json, BlockConditions value) {
+        }
+
+        @Override
+        public BlockConditions read(JsonObject json) {
+            return new BlockConditions(json.get("object").getAsString());
+        }
+
+        @Override
+        public ResourceLocation getID() {
+            return NAME;
+        }
     }
 }

@@ -1,23 +1,21 @@
 package io.github.strikerrocker.vt.content.items;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonObject;
 import io.github.strikerrocker.vt.VanillaTweaks;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.crafting.conditions.ICondition;
+import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
 
 /**
  * Adds conditions for item recipes
  */
-public final class ItemConditions implements ICondition {
-    public static final Codec<ItemConditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("object").forGetter(condition -> condition.object)
-    ).apply(instance, ItemConditions::new));
-    public static final ResourceLocation NAME = new ResourceLocation(VanillaTweaks.MOD_ID, "items");
-    private final String object;
+public record ItemConditions(String object) implements ICondition {
 
-    public ItemConditions(String object) {
-        this.object = object;
+    private static final ResourceLocation NAME = new ResourceLocation(VanillaTweaks.MOD_ID, "items");
+
+    @Override
+    public ResourceLocation getID() {
+        return NAME;
     }
 
     @Override
@@ -29,8 +27,21 @@ public final class ItemConditions implements ICondition {
         return false;
     }
 
-    @Override
-    public Codec<? extends ICondition> codec() {
-        return CODEC;
+    public static class Serializer implements IConditionSerializer<ItemConditions> {
+        public static final Serializer INSTANCE = new Serializer();
+
+        @Override
+        public void write(JsonObject json, ItemConditions value) {
+        }
+
+        @Override
+        public ItemConditions read(JsonObject json) {
+            return new ItemConditions(json.get("object").getAsString());
+        }
+
+        @Override
+        public ResourceLocation getID() {
+            return NAME;
+        }
     }
 }

@@ -1,29 +1,25 @@
 package io.github.strikerrocker.vt.recipes;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonObject;
 import io.github.strikerrocker.vt.VanillaTweaks;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.crafting.conditions.ICondition;
+import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
 
 /**
  * Adds conditions for adding vanilla-like recipes
  */
-public final class VanillaRecipeConditions implements ICondition {
-    public static final ResourceLocation NAME = new ResourceLocation(VanillaTweaks.MOD_ID, "vanilla");
-    public static final Codec<VanillaRecipeConditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("object").forGetter(condition -> condition.object)
-    ).apply(instance, VanillaRecipeConditions::new));
-    private final String object;
+public record VanillaRecipeConditions(String object) implements ICondition {
 
+    private static final ResourceLocation NAME = new ResourceLocation(VanillaTweaks.MOD_ID, "vanilla");
 
-    public VanillaRecipeConditions(String object) {
-        this.object = object;
+    @Override
+    public ResourceLocation getID() {
+        return NAME;
     }
 
     @Override
     public boolean test(IContext context) {
-        System.out.println(object);
         if (object.equals("chest")) return VanillaRecipes.betterChest.get();
         if (object.equals("nametag")) return VanillaRecipes.nametag.get();
         if (object.equals("string")) return VanillaRecipes.string.get();
@@ -32,8 +28,21 @@ public final class VanillaRecipeConditions implements ICondition {
         return false;
     }
 
-    @Override
-    public Codec<? extends ICondition> codec() {
-        return CODEC;
+    public static class Serializer implements IConditionSerializer<VanillaRecipeConditions> {
+        public static final VanillaRecipeConditions.Serializer INSTANCE = new VanillaRecipeConditions.Serializer();
+
+        @Override
+        public void write(JsonObject json, VanillaRecipeConditions value) {
+        }
+
+        @Override
+        public VanillaRecipeConditions read(JsonObject json) {
+            return new VanillaRecipeConditions(json.get("object").getAsString());
+        }
+
+        @Override
+        public ResourceLocation getID() {
+            return NAME;
+        }
     }
 }
